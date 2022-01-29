@@ -1,15 +1,11 @@
-# fp-dataset-artifacts
+# Starter code for final project for CS 378 -- dataset artifact 
 
-Project by Kaj Bostrom, Jifan Chen, and Greg Durrett. Code by Kaj Bostrom and Jifan Chen.
+Credit: Project by Kaj Bostrom, Jifan Chen, and Greg Durrett. Code by Kaj Bostrom and Jifan Chen.
 
 ## Getting Started
 You'll need Python >= 3.6 to run the code in this repo.
 
-First, clone the repository:
-
-`git clone git@github.com:gregdurrett/fp-dataset-artifacts.git`
-
-Then install the dependencies:
+You should first install the dependencies:
 
 `pip install --upgrade pip`
 
