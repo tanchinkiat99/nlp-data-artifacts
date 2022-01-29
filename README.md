@@ -34,7 +34,7 @@ To train/evaluate a question answering model on SQuAD instead, change `--task nl
 
 **Descriptions of other important arguments are available in the comments in `run.py`.**
 
-**If you would like to use different pretrained models, modify the `--model` argument. All available models can be found [here](https://huggingface.co/docs/transformers/v4.16.1/en/model_summary) **
+**If you would like to use different pretrained models, modify the `--model` argument. All available models can be found [here](https://huggingface.co/docs/transformers/v4.16.1/en/model_summary) [here](https://huggingface.co/models)**
 
 Data and models will be automatically downloaded and cached in `~/.cache/huggingface/`.
 To change the caching directory, you can modify the shell environment variable `HF_HOME` or `TRANSFORMERS_CACHE`.
