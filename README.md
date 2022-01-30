@@ -32,6 +32,8 @@ To prevent `run.py` from trying to use a GPU for training, pass the argument `--
 
 To train/evaluate a question answering model on SQuAD instead, change `--task nli` and `--dataset snli` to `--task qa` and `--dataset squad`.
 
+The default code uses HuggingFace trainer, which checkpoints models periodically (every 500 steps by default). This can be used to make your development cycle faster --  For example, you can start a long training run, leave it going for several hours, and evaluate how much of that time was actually needed to get good performance. If it worked well after only two hours, you'll know that for the future. Ideally, you can then do further experimentation more quickly or even start future runs from checkpoints. 
+
 **Descriptions of other important arguments are available in the comments in `run.py`.**
 
 **If you would like to use different pretrained models, modify the `--model` argument. All available models can be found [here](https://huggingface.co/docs/transformers/v4.16.1/en/model_summary) and [here](https://huggingface.co/models)**
