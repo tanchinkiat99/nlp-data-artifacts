@@ -1,2 +1,6 @@
 *.pyc
 output/
+venv/
+trained_model/
+eval_output/
+__pycache__/
