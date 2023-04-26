@@ -1,10 +1,13 @@
 import datasets
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, \
-    AutoModelForQuestionAnswering, Trainer, TrainingArguments, HfArgumentParser
+    AutoModelForQuestionAnswering, Trainer, TrainingArguments, HfArgumentParser, \
+    TrainerCallback
 from helpers import prepare_dataset_nli, prepare_train_dataset_qa, \
     prepare_validation_dataset_qa, QuestionAnsweringTrainer, compute_accuracy
 import os
 import json
+import random
+
 
 NUM_PREPROCESSING_WORKERS = 2
 
@@ -48,6 +51,12 @@ def main():
                       help='Limit the number of examples to evaluate on.')
 
     training_args, args = argp.parse_args_into_dataclasses()
+
+    # Retrieving dataset classifications
+    with open("./results/classification.json", "r") as rf:
+        classes = json.load(rf)
+        easy_idxs = classes["easy"]
+        hard_idxs = classes["hard"]
 
     # Dataset selection
     if args.dataset.endswith('.json') or args.dataset.endswith('.jsonl'):
@@ -102,6 +111,14 @@ def main():
         train_dataset = dataset['train']
         if args.max_train_samples:
             train_dataset = train_dataset.select(range(args.max_train_samples))
+        # NOTE: fast implementation
+        else:
+            # classification happening here
+            print("Creating modified dataset...")
+            train_idxs = easy_idxs[:150] + hard_idxs[:351]
+            random.seed(6)
+            random.shuffle(train_idxs)
+            train_dataset = train_dataset.select(train_idxs)
         train_dataset_featurized = train_dataset.map(
             prepare_train_dataset,
             batched=True,
@@ -145,17 +162,54 @@ def main():
         eval_predictions = eval_preds
         return compute_metrics(eval_preds)
 
+    # Callback for calculating confidence 
+    class ConfidenceCallback(TrainerCallback):
+        def on_epoch_end(self, args, state, control, **kwargs):
+            if state.epoch == 1:
+                # initialize result file
+                with open("./results/confidence.json", "w") as f:
+                    json.dump({}, f)
+                print("Confidence results file initialized!")
+
+            # Calculate confidence for each datapoint
+            print(f"End of epoch: {state.epoch}. Calculating probability of truth labels...")
+            prediction_features, prediction_labels, prediction_metrics = trainer.predict(train_dataset_featurized)
+            probability_success = []
+            for i in range(len(prediction_labels)):
+                probabilities = prediction_features[i]
+                correct_label = prediction_labels[i]
+                probability_success.append(float(probabilities[correct_label]))
+            with open("./results/confidence.json", "r") as rf:
+                data = json.load(rf)
+            data[state.epoch] = probability_success
+            with open("./results/confidence.json", "w") as wf:
+                json.dump(data, wf)
+
+    
+    # Set shuffle to false
+    # training_args.shuffle = False
+
     # Initialize the Trainer object with the specified arguments and the model and dataset we loaded above
     trainer = trainer_class(
         model=model,
         args=training_args,
         train_dataset=train_dataset_featurized,
         eval_dataset=eval_dataset_featurized,
+        callbacks=[],
         tokenizer=tokenizer,
         compute_metrics=compute_metrics_and_store_predictions
     )
+
+
     # Train and/or evaluate
     if training_args.do_train:
+
+        # store train dataset
+        data = {}
+        data["train data"] = list(train_dataset)
+        with open("./results/train_dataset.json", "w") as f:
+            json.dump(data, f)
+
         trainer.train()
         trainer.save_model()
         # If you want to customize the way the loss is computed, you should subclass Trainer and override the "compute_loss"

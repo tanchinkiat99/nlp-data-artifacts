@@ -1,7 +1,7 @@
 import numpy as np
 import collections
 from collections import defaultdict, OrderedDict
-from transformers import Trainer, EvalPrediction
+from transformers import Trainer, EvalPrediction, TrainerCallback
 from transformers.trainer_utils import PredictionOutput
 from typing import Tuple
 from tqdm.auto import tqdm
@@ -312,3 +312,10 @@ class QuestionAnsweringTrainer(Trainer):
         self.control = self.callback_handler.on_evaluate(self.args, self.state,
                                                          self.control, metrics)
         return metrics
+    
+
+# Callback helper for calculating confidence 
+class ConfidenceCallback(TrainerCallback):
+    def on_epoch_end(self, args, state, control, **kwargs):
+        # TODO: calculate confidence for each datapoint
+        pass
